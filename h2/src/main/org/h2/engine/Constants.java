@@ -24,7 +24,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2009-09-04";
+    public static final String BUILD_DATE = "2022-05-02";
 
     /**
      * The build date is updated for each public release.
@@ -499,7 +499,7 @@ public class Constants {
      * @return the version number
      */
     public static String getVersion() {
-        return VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID;
+        return VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID + "-fusions";
     }
 
     /**
