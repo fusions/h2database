@@ -9,12 +9,9 @@ package org.h2.store.fs;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Date;
 
 import org.h2.util.FileUtils;
-
-import java.util.Date;
-// for debug
-import java.io.File;
 
 /**
  * This class is extends a java.io.RandomAccessFile.
@@ -96,7 +93,7 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
           printWarning(" - File content restored.");
         }
   
-        // debug: check before/after
+        // for test: check before/after
         // --------------
         // if( posCur > lengthBefore || (bytesBefore.length > 0 && writtenLen > 0)) {
         //   byte bytesRestored[] = new byte[bytesBefore.length];
