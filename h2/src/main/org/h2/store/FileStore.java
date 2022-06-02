@@ -18,6 +18,7 @@ import org.h2.message.Trace;
 import org.h2.security.SecureFileStore;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
+import org.h2.store.fs.IOExceptionAndRollbackFailed;
 import org.h2.util.ByteUtils;
 import org.h2.util.TempFileDeleter;
 
@@ -334,6 +335,11 @@ public class FileStore {
         try {
             file.write(b, off, len);
         } catch (IOException e) {
+            // for FileObjectDisk: don't execute write() again when rollback failed because pos may has changed.
+            if ( (e instanceof IOExceptionAndRollbackFailed) ){
+                throw Message.convertIOException(((IOExceptionAndRollbackFailed)e).getException(), name);
+            }
+
             if (freeUpDiskSpace()) {
                 try {
                     file.write(b, off, len);

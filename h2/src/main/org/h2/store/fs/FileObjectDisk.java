@@ -22,6 +22,7 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
     private long posBefore;
     private byte[] bytesBefore;
     private long lengthBefore;
+    private boolean backuped;
 
     FileObjectDisk(String fileName, String mode) throws FileNotFoundException {
         super(fileName, mode);
@@ -47,21 +48,27 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
         super.write(b, off, len);
       } catch (IOException e) {
         printWarning("Error occured when writing file(" + name + ").");
-        // e.printStackTrace(System.out);
-        restore(b);
-        seek(posBefore); //for redo writing in FileStore.java:339
-        throw e;
+        if(restore(b)){
+          throw e;
+        } else {
+          throw new IOExceptionAndRollbackFailed(e);
+        }
       }
     }
   
     private void backup(int length) throws IOException  {
+      backuped = false;
+
+      if( length <= 0) {
+        return;
+      }
+
       posBefore = getFilePointer();
       lengthBefore = length();
       
       long valid = lengthBefore - posBefore;
   
       if( valid <= 0) {
-        bytesBefore = new byte[0]; 
         return;
       }
       
@@ -69,33 +76,39 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
   
       read(bytesBefore);
       seek(posBefore);
+
+      backuped = true;
     }
   
-    private void restore(byte[] b) throws IOException  {
-      long posCur = getFilePointer();
-      long lenCur = length();
-      int writtenLen = (int)(posCur - posBefore);
-  
-      if(writtenLen > bytesBefore.length) {
-        writtenLen = bytesBefore.length;
+    private boolean restore(byte[] b) {
+      if( ! backuped ) {
+        return true;
       }
-  
+
       try {
+        long posCur = getFilePointer();
+        int writtenLen = (int)(posCur - posBefore);
+    
+        if(writtenLen > bytesBefore.length) {
+          writtenLen = bytesBefore.length;
+        }
+    
         // restore file length.
         if( posCur > lengthBefore) {
           setFileLength(lengthBefore);
           printWarning(" - File lenth restored.");
         }
         // restore content
-        if( bytesBefore.length > 0 && writtenLen > 0){
+        if( writtenLen > 0){
           seek(posBefore);
           super.write(bytesBefore, 0, writtenLen);
           printWarning(" - File content restored.");
+          seek(posBefore);
         }
-  
+
         // for test: check before/after
         // --------------
-        // if( posCur > lengthBefore || (bytesBefore.length > 0 && writtenLen > 0)) {
+        // if( posCur > lengthBefore || writtenLen > 0) {
         //   byte bytesRestored[] = new byte[bytesBefore.length];
         //   seek(posBefore);
         //   read(bytesRestored);
@@ -106,10 +119,12 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
         //   }
         // }
         // --------------
-      } catch (IOException e) {
+
+        return true;
+      } catch (Exception e) {
         printWarning("File restoration failed with error:");
         e.printStackTrace();
-        // throw e;
+        return false;
       }
     }
   
