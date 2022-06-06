@@ -24,7 +24,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2022-05-02";
+    public static final String BUILD_DATE = "2022-06-06";
 
     /**
      * The build date is updated for each public release.
