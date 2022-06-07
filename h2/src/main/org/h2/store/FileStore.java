@@ -335,8 +335,8 @@ public class FileStore {
         try {
             file.write(b, off, len);
         } catch (IOException e) {
-            // for FileObjectDisk: don't execute write() again when rollback failed because pos may has changed.
-            if ( (e instanceof IOExceptionAndRollbackFailed) ){
+            // for FileObjectDisk: don't redo write() when rollback failed because pos may has changed.
+            if ( e instanceof IOExceptionAndRollbackFailed ){
                 throw Message.convertIOException(((IOExceptionAndRollbackFailed)e).getException(), name);
             }
 
